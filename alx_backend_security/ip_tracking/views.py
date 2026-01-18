@@ -12,10 +12,7 @@ from django.views import View
 # Create your views here.
 def rate_limit_check(request):
     """
-    Return (allowed: bool, reason: str).
-    Authenticated users: 10 requests/min by IP.
-    Anonymous users: 5 requests/min by IP.
-    Uses django-ratelimit core helper is_ratelimited (programmatic).
+    Uses django-ratelimit core helper is_ratelimited.
     """
     if request.user and request.user.is_authenticated:
         rate = "10/m"
@@ -30,8 +27,7 @@ def rate_limit_check(request):
 @csrf_exempt
 def login_view(request):
     """
-    Example login view (POST) that uses programmatic rate limiting.
-    On rate limit hit, returns 429.
+    Rate limiting returns 429.
     """
     allowed, reason = rate_limit_check(request)
     if not allowed:
