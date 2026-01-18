@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ip_tracking',
+    'ratelimit',  # django-ratelimit
 ]
 
 MIDDLEWARE = [
@@ -82,7 +83,36 @@ DATABASES = {
     }
 }
 
+# Geolocation service config (optional). Use 'ipapi' fallback (no API key needed)
+IP_GEOLOCATION_CACHE_TTL = 60 * 60 * 24  # 24 hours
+IP_GEO_SERVICE = "ipapi"  # or name of provider you plan to use
 
+# Celery configuration (example using Redis broker)
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_BEAT_SCHEDULE = {
+    # run anomaly detection every hour
+    "ip-anomaly-detection-hourly": {
+        "task": "ip_tracking.tasks.detect_suspicious_ips",
+        "schedule": 3600.0,  # seconds
+    },
+}
+
+# Logging snippet (ensure the ip_tracking logger prints warnings)
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "ip_tracking": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -118,3 +148,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "ipgeo-cache",
+    }
+}
