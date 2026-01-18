@@ -2,16 +2,6 @@ from django.db import models
 from django.utils import timezone
 # Create your models here.
 
-class BlockedIP(models.Model):
-    """IP addresses should be blocked."""
-    ip_address = models.GenericIPAddressField(unique=True)
-    reason = models.CharField(max_length=255, blank=True, null=True)
-    blocked_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.ip_address} ({self.reason or 'blocked'})"
-
-
 class RequestLog(models.Model):
     """Log incoming requests with geolocation info."""
     ip_address = models.GenericIPAddressField()
@@ -30,14 +20,3 @@ class RequestLog(models.Model):
 
     def __str__(self):
         return f"{self.ip_address} - {self.path} @ {self.timestamp}"
-
-
-class SuspiciousIP(models.Model):
-    """Flagged IPs by the anomaly detection task."""
-    ip_address = models.GenericIPAddressField(unique=True)
-    reason = models.CharField(max_length=500)
-    flagged_at = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.ip_address} - {self.reason}"
